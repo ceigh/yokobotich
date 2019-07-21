@@ -1,6 +1,6 @@
 {
   "name": "yokobot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "dependencies": {
     "levenshtein": "^1.0.5",
     "tmi.js": "^1.4.5"
