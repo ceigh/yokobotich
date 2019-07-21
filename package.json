@@ -1,0 +1,29 @@
+{
+  "name": "yokobot",
+  "version": "1.0.0",
+  "dependencies": {
+    "levenshtein": "^1.0.5",
+    "tmi.js": "^1.4.5"
+  },
+  "description": "Bot for YokoBovich twitch channel",
+  "main": "src/app.js",
+  "scripts": {
+    "dev": "node src/app.js",
+    "start": "NODE_ENV='production' node src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/ceigh/yokobot.git"
+  },
+  "keywords": [
+    "yokobovich",
+    "twitch",
+    "bot"
+  ],
+  "author": "Artjom Löbsack",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/ceigh/yokobot/issues"
+  },
+  "homepage": "https://gitlab.com/ceigh/yokobot#readme"
+}
