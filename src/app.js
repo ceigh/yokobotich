@@ -35,7 +35,7 @@ const client = new tmi.client(options);
 const skipData = {
   toSkip: 4,
   current: 0,
-  prevUser: undefined,
+  users: []
 };
 
 
@@ -68,19 +68,19 @@ client.on('chat', (channel, username, message) => {
   if (isDev) console.log(`Distance: ${l.distance}`);
 
   if (l.distance < 4 && !lowercased.includes('не')) {
-    if (skipData.prevUser !== username.username) {
+    if (!skipData.users.includes(username.username)) {
       skipData.current++;
-      skipData.prevUser = username.username;
+      skipData.users.push(username.username);
 
       if (skipData.current === skipData.toSkip) {
         client.action(channel, phrases.getPhrase());
         skipData.current = 0;
-        skipData.prevUser = undefined;
+        skipData.users = [];
       }
     }
   } else {
     skipData.current = 0;
-    skipData.prevUser = undefined;
+    skipData.users = [];
   }
 
   if (isDev) console.log(skipData);
