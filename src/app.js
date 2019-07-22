@@ -41,6 +41,7 @@ const skipData = {
 
 // Exec
 client.on('chat', (channel, username, message) => {
+  const lowercased = message.toLowerCase();
   if (isDev) console.log(username);
 
   if (username.username === hoster) {
@@ -63,10 +64,10 @@ client.on('chat', (channel, username, message) => {
     }
   }
 
-  const l = new Levenshtein('ну и говно', message.toLowerCase());
+  const l = new Levenshtein('ну и говно', lowercased);
   if (isDev) console.log(`Distance: ${l.distance}`);
 
-  if (l.distance < 3) {
+  if (l.distance < 4 && !lowercased.includes('не')) {
     if (skipData.prevUser !== username.username) {
       skipData.current++;
       skipData.prevUser = username.username;
