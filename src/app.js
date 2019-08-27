@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Imports
 require('./errors');
 const phrases = require('./phrases');
@@ -16,7 +18,7 @@ if (!token) throw new AuthError('Define TWITCH_TOKEN env variable');
 
 const options = {
   options: {
-    debug: isDev
+    debug: process.env.VERBOSE || isDev
   },
   connection: {
     cluster: 'aws',
