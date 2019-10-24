@@ -1,91 +1,86 @@
 #!/usr/bin/env node
 
-// Imports
-require('./errors');
-const phrases = require('./phrases');
-const Levenshtein = require('levenshtein');
+
+require('dotenv').config();
+
 const tmi = require('tmi.js');
+const phrases = require('./phrases');
 
 
-// Variables
-const mode = process.env.NODE_ENV || 'development';
-const isDev = mode === 'development';
-
-const hoster = isDev ? 'hecig' : 'yokobovich';
-
-const token = process.env.TWITCH_TOKEN;
-if (!token) throw new AuthError('Define TWITCH_TOKEN env variable');
+const bot = process.env.BOT;
+if (!bot) throw Error('Define BOT env variable');
+const channel = process.env.CHANNEL;
+if (!channel) throw new Error('Define CHANNEL env variable');
+const token = process.env.TOKEN;
+if (!token) throw new Error('Define TOKEN env variable');
 
 const options = {
   options: {
-    debug: process.env.VERBOSE || isDev
+    debug: true
   },
   connection: {
     cluster: 'aws',
     reconnect: true
   },
   identity: {
-    username: 'roBHo6oT',
+    username: bot,
     password: token
   },
-  channels: [hoster]
+  channels: [channel]
 };
-if (isDev) console.log(options);
-
 const client = new tmi.client(options);
 
-const skipData = {
-  toSkip: 4,
-  current: 0,
-  users: []
+const data = {
+  skip: 4,
+  curr: 0,
+  usrs: []
 };
 
+const clientID = process.env.CLIENT_ID;
 
-// Exec
-client.on('chat', (channel, username, message) => {
-  const lowercased = message.toLowerCase();
-  if (isDev) console.log(username);
 
-  if (username.username === hoster) {
-    if (/^!говно/i.test(message)) {
-      const splitted = message.split(' ');
-      let value = splitted[1];
+if (clientID) {
+  client.api({
+    url: `https://api.twitch.tv/kraken/streams/${channel}?client_id=${clientID}`
+  }, (err, res, body) => {
+    if (body.stream) data.skip = Math.round(body.stream.viewers / 20);
+ });
+}
 
-      if (value) {
-        value = Number(value);
-        if (Number.isInteger(value)) {
-          skipData.toSkip = value;
-          client.action(channel, `Для скипа теперь нужно ${value} нуиговен :O`);
-        } else {
-          client.action(channel, `${username.username}, Использование: !говно {число}`);
-        }
-      } else {
-        client.action(channel, `${username.username}, Использование: !говно {количество}`);
-      }
-      return;
+client.on('chat', (chl, usr, msg) => {
+  // Set toSkip
+  if (usr.mod || (usr.badges && usr.badges.broadcaster)) {
+    const match = msg.match(/^!говно (\d+)$/);
+    if (match) {
+      const val = +match[1];
+      data.skip = val;
+      client.action(chl, `Для скипа теперь нужно ${val} нуиговен :O`);
     }
   }
 
-  const l = new Levenshtein('ну и говно', lowercased);
-  if (isDev) console.log(`Distance: ${l.distance}`);
+  // Handle skip msgs
+  const low = msg.toLowerCase();
+  const rxp = /^(ну ?и ?г[aаo0о]вн[o0о]|n[uy] ?i ?g[aаo0о]vn[o0о]).*/;
 
-  if (l.distance < 4 && !lowercased.includes('не')) {
-    if (!skipData.users.includes(username.username)) {
-      skipData.current++;
-      skipData.users.push(username.username);
+  if (rxp.test(low) && !low.includes('не')) {
+    if (!data.usrs.includes(usr.username)) {
+      data.curr++;
+      data.usrs.push(usr.username);
 
-      if (skipData.current === skipData.toSkip) {
-        client.action(channel, phrases.getPhrase());
-        skipData.current = 0;
-        skipData.users = [];
+      if (data.curr === data.skip) {
+        client.action(chl, `${phrases.getPhrase()} @${channel}`);
+        data.curr = 0;
+        data.usrs = [];
       }
     }
   } else {
-    skipData.current = 0;
-    skipData.users = [];
+    data.curr = 0;
+    data.usrs = [];
   }
 
-  if (isDev) console.log(skipData);
+  console.info(data);
 });
 
 client.connect();
+console.info(data);
+
