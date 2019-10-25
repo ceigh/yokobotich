@@ -94,10 +94,9 @@ function checkSetSkip(chl, usr, msg) {
 }
 
 function checkSkipMsg(chl, usr, msg) {
-  const low = msg.toLowerCase();
-  const rxp = /^(ну ?и ?г[aаo0о]вн[o0о]|n[uy] ?i ?g[aаo0о]vn[o0о]).*/;
+  const rxp = /^([нНH][уУyY] ?[иИ&] ?[гГ][оОаА04oOaA][вВB][нНH][oOоО0]|[nN][uUyYуУ] ?[iIl1&] ?[gG][oOaA04оОаА][vV][nN][oO0оО]).*/;
 
-  if (rxp.test(low)) {
+  if (rxp.test(msg)) {
     if (!data.usrs.includes(usr.username)) {
       data.curr++;
       data.usrs.push(usr.username);

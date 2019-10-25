@@ -7,6 +7,9 @@
   },
   "description": "Skip notifications for twitch channel",
   "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://gitlab.com/ceigh/yokobot.git"

@@ -4,14 +4,13 @@ Skip notification bot for twitch chat
 
 # Install
 
-`git clone https://gitlab.com/ceigh/yokobot`
+`git clone git@gitlab.com:ceigh/yokobot.git`
+
+# Configure
+
+Edit yokobot/.env file
 
 # Launch
 
-`cd yokobot`
+`node src/app.js`
 
-`TWITCH_TOKEN={your twitch token} npm run start`
-
-# License
-
-MIT
