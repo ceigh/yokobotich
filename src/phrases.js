@@ -46,7 +46,17 @@ const ends = [
     'едрёныть',
 ];
 
-const getPhrase = () => {
+const says = [
+  'говорит',
+  'думает',
+  'сообщает',
+  'кричит',
+  'орет',
+  'передает',
+  'шепчет'
+];
+
+const getPhrase = username => {
   const randMain = Math.floor(Math.random() * phrases.length);
   const main = phrases[randMain];
 
@@ -54,13 +64,16 @@ const getPhrase = () => {
   const randEnd = Math.floor(Math.random() * ends.length);
   const end = isEnd ? ` ${ends[randEnd]}` : '';
 
+  const randSays = Math.floor(Math.random() * says.length);
+  const say = says[randSays];
+
   const start = Math.round(Math.random()) ? 'пиздец, ' : '';
 
-  return `💩 💩 💩 ${start}${main}${end} 💩 💩 💩`
+  return `${say}: "${start}${main}${end}", @${username} 💩`
 };
 
 // for (let i = 0; i < 100; i++) {
-//   console.log(getPhrase());
+//   console.log(getPhrase('Username'));
 // }
 
 exports.getPhrase = getPhrase;

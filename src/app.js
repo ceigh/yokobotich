@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 // Requires
 require('dotenv').config();
 const tmi = require('tmi.js');
@@ -22,6 +20,7 @@ if (!streamElementsAid || !streamElementsJwt) console.warn('If you want '
   + 'to spend points by command define STREAMELEMENTS_JWT_TOKEN env variable');
 
 let total = 0;
+const cost = 100;
 const data = {
   skip: 4,
   curr: 0,
@@ -48,10 +47,10 @@ const client = new tmi.client(options);
 // Executions
 if (require.main === module) {
   client.on('chat', (chl, usr, msg) => {
+    console.info(data);
     checkSetSkip(chl, usr, msg);
     checkSkipMsg(chl, usr, msg);
     updateTotal();
-    console.info(data);
   });
 
   setSkipByViewers();
@@ -88,7 +87,7 @@ function checkSetSkip(chl, usr, msg) {
     if (match) {
       const val = +match[1];
       data.skip = val;
-      client.action(chl, `Для скипа теперь нужно ${val} нуиговен :O`);
+      client.action(chl, `решил, что для пропуска теперь нужно ${val} "ну и говно" :O`);
     }
   }
 }
@@ -98,14 +97,29 @@ function checkSkipMsg(chl, usr, msg) {
 
   if (rxp.test(msg)) {
     if (!data.usrs.includes(usr.username)) {
-      data.curr++;
-      data.usrs.push(usr.username);
-      if (data.curr === data.skip) {
-        client.action(chl, `${phrases.getPhrase()} @${channel}`);
-        data.curr = 0;
-        addPoints(data.usrs, -100);
-        data.usrs = [];
-      }
+      client.api({
+        url: `https://api.streamelements.com/kappa/v2/points/${streamElementsAid}/${usr.username}`
+      }, (e, r, b) => {
+        if (e) {
+          console.warn(e);
+        } else {
+          if (b.points < cost) {
+            client.action(chl, `установил, что у @${usr['display-name']} недостаточно ББП :D`);
+            data.curr = 0;
+            data.usrs = [];
+          } else {
+            data.curr++;
+            data.usrs.push(usr.username);
+            
+            if (data.curr === data.skip) {
+              client.action(chl, phrases.getPhrase(channel));
+              data.curr = 0
+              addPoints(data.usrs, -cost);
+              data.usrs = [];
+            }
+          }
+        }
+      });
     }
   } else {
     data.curr = 0;
