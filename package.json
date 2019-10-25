@@ -24,10 +24,5 @@
   "bugs": {
     "url": "https://gitlab.com/ceigh/yokobot/issues"
   },
-  "homepage": "https://gitlab.com/ceigh/yokobot#readme",
-  "engines": {
-    "node": "10.x",
-    "npm": "*"
-  }
+  "homepage": "https://gitlab.com/ceigh/yokobot#readme"
 }
-
