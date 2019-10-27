@@ -1,5 +1,5 @@
 // Imports
-const phrases = require('./lib/phrases');
+const phrases = require('./phrases.js');
 
 
 // Vars
