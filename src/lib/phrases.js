@@ -1,4 +1,5 @@
-const phrases = [
+// Bases
+const mains = [
     'это несерьезно...',
     'хватит меня доебывать, скипай',
     'теперь понятно что у чата мозги на месте, скорее следующий видос!',
@@ -46,7 +47,7 @@ const ends = [
     'едрёныть',
 ];
 
-const says = [
+const starts = [
   'говорит',
   'думает',
   'сообщает',
@@ -56,25 +57,43 @@ const says = [
   'шепчет'
 ];
 
+
+// Constructions
 const getPhrase = username => {
-  const randMain = Math.floor(Math.random() * phrases.length);
-  const main = phrases[randMain];
+  const randMain = Math.floor(Math.random() * mains.length);
+  const main = mains[randMain];
 
   const isEnd = Math.round(Math.random());
   const randEnd = Math.floor(Math.random() * ends.length);
   const end = isEnd ? ` ${ends[randEnd]}` : '';
 
-  const randSays = Math.floor(Math.random() * says.length);
-  const say = says[randSays];
+  const randStart = Math.floor(Math.random() * starts.length);
+  const start = starts[randStart];
 
-  const start = Math.round(Math.random()) ? 'пиздец, ' : '';
+  const before = Math.round(Math.random()) ? 'пиздец, ' : '';
 
-  return `${say}: "${start}${main}${end}", @${username} 💩`
+  return `${start}: "${before}${main}${end}", @${username} 💩`
 };
 
-// for (let i = 0; i < 100; i++) {
-//   console.log(getPhrase('Username'));
-// }
+const onSet = val => 'решил, что для пропуска'
+  + ` теперь нужно ${val} "ну и говно" :O`;
 
-exports.getPhrase = getPhrase;
+const onNoPoints = username => 'установил, что у'
+  + ` @${username} недостаточно ББП :D`;
+
+
+// Test
+if (require.main === module) {
+  for (let i = 0; i < 50; i++) {
+    console.log(getPhrase('User'));
+  }
+}
+
+
+// Exports
+module.exports = {
+  getPhrase,
+  onSet,
+  onNoPoints
+};
 

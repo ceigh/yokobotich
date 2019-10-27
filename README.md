@@ -8,7 +8,7 @@ Skip notification bot for twitch chat
 
 # Configure
 
-Edit `yokobot/.env file`
+Edit `yokobot/.env` file
 
 # Launch
 

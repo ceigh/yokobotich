@@ -6,7 +6,8 @@
     "tmi.js": "^1.5.0"
   },
   "description": "Skip notifications for twitch channel",
-  "main": "src/app.js",
+  "main": "src/index.js",
+  "bin": "src/app.js",
   "scripts": {
     "start": "node src/app.js"
   },
