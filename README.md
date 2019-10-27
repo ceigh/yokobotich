@@ -9,6 +9,7 @@ Skip notification bot for twitch chat
 # Configure
 
 Edit `yokobot/.env` file
+Edit your own bot's responses in `yokobot/src/lib/phrases.js` file
 
 # Launch
 

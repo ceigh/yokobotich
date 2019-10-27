@@ -6,7 +6,7 @@
     "tmi.js": "^1.5.0"
   },
   "description": "Skip notifications for twitch channel",
-  "main": "src/index.js",
+  "main": "src/lib/index.js",
   "bin": "src/app.js",
   "scripts": {
     "start": "node src/app.js"
@@ -27,3 +27,4 @@
   },
   "homepage": "https://gitlab.com/ceigh/yokobot#readme"
 }
+
