@@ -1,10 +1,24 @@
-// const Tmi = require('tmi.js').client;
+// import Tmi from 'tmi.js';
+import SimpleCrypto from 'simple-crypto-js';
 import Yokobot from './lib/yokobot.js';
 
 
-const cfg = {};
+const secret = new URL(document.location.href)
+  .searchParams.get('secret');
+if (!secret) throw Error('Use ?secret url param');
+const simpleCrypto = new SimpleCrypto(secret);
 
-const yokobot = new Yokobot(cfg);
+// from webpack
+// eslint-disable-next-line no-undef
+const encCfg = CFG_HASH;
+let decCfg;
+try {
+  decCfg = JSON.parse(simpleCrypto.decrypt(encCfg));
+} catch {
+  throw new Error('Wrong secret');
+}
+
+const yokobot = new Yokobot(decCfg);
 // const client = new Tmi(yokobot.opts);
 
 
