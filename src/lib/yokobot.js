@@ -1,13 +1,27 @@
 // Imports
+const jsEnv = require('browser-or-node');
 const phrases = require('./phrases.js');
-
 
 // Vars
 const seApiUrl = 'https://api.streamelements.com/kappa/v2/';
 
 
 // Funcs
-const define = (item) => `*Define ${item} in cfg`;
+const define = (item) => `Define ${item} in cfg`;
+
+const changeClientApi = (client) => {
+  if (jsEnv.isNode) return;
+
+  client.api = (opts, callback) => {
+    const { url } = opts;
+    delete opts.url;
+
+    fetch(url, opts)
+      .then((resp) => resp.json())
+      .then((json) => callback(null, null, json))
+      .catch((err) => callback(err));
+  };
+};
 
 
 // Classes
@@ -63,7 +77,10 @@ class Yokobot {
 
     this.opts = {
       options: { debug: true },
-      connection: { reconnect: true },
+      connection: {
+        reconnect: true,
+        secure: true,
+      },
       channels: [this.channel],
       identity: {
         username: this.bot,
@@ -84,6 +101,8 @@ class Yokobot {
   }
 
   checkSkip(client, channel, usr, msg) {
+    changeClientApi(client);
+
     if (this.rgxp.skip.test(msg)) {
       if (!this.state.usrs.includes(usr.username)) {
         if (this.seId && this.seJwt) {

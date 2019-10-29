@@ -1,4 +1,4 @@
-// import Tmi from 'tmi.js';
+import './lib/modules/tmi.min.js';
 import SimpleCrypto from 'simple-crypto-js';
 import Yokobot from './lib/yokobot.js';
 
@@ -18,16 +18,15 @@ try {
   throw new Error('Wrong secret');
 }
 
+const Tmi = window.tmi.Client;
 const yokobot = new Yokobot(decCfg);
-// const client = new Tmi(yokobot.opts);
+const client = new Tmi(yokobot.opts);
 
 
-// client.on('chat', (channel, usr, msg) => {
-//   yokobot.checkSet(client, channel, usr, msg);
-//   yokobot.checkSkip(client, channel, usr, msg);
-//   console.info(yokobot.state);
-//
-//   client.connect();
-// });
+client.on('chat', (channel, usr, msg) => {
+  yokobot.checkSet(client, channel, usr, msg);
+  yokobot.checkSkip(client, channel, usr, msg);
+  console.info(yokobot.state);
+});
 
-console.log(yokobot);
+client.connect();

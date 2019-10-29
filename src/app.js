@@ -2,7 +2,7 @@
 
 require('dotenv').config();
 const Tmi = require('tmi.js').client;
-const Yokobot = require('./lib/yokobot.js');  
+const Yokobot = require('./lib/yokobot.js');
 
 const yokobot = new Yokobot(process.env);
 const client = new Tmi(yokobot.opts);
