@@ -5,17 +5,17 @@
     "browser-or-node": "^1.2.1",
     "crypto-js": "^3.1.9-1",
     "dotenv": "^8.2.0",
+    "jsonp": "^0.2.1",
     "simple-crypto-js": "^2.2.0",
     "tmi.js": "^1.5.0"
   },
   "description": "Skip notifications for twitch channel",
   "main": "src/lib/yokobot.js",
   "bin": "src/app.js",
-  "browser": "public/index.html",
   "scripts": {
     "lint": "./node_modules/.bin/eslint .",
-    "lint:fix": "./node_modules/.bin/eslint . --fix", 
-    "start": "node src/app.js",
+    "lint:fix": "./node_modules/.bin/eslint . --fix",
+    "start": "node src/node/index.js",
     "browser:dev": "./node_modules/.bin/webpack-dev-server",
     "browser:prod": "NODE_ENV=production ./node_modules/.bin/webpack"
   },
@@ -40,14 +40,16 @@
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
     "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^3.2.0",
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-loader": "^3.0.2",
     "eslint-plugin-import": "^2.18.2",
     "html-webpack-plugin": "^3.2.0",
+    "style-loader": "^1.0.0",
     "terser-webpack-plugin": "^2.2.1",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9",
+    "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0"
   }
 }

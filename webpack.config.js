@@ -52,7 +52,7 @@ module.exports = {
     port: 9009,
   },
 
-  entry: { yokobot: `${__dirname}/src/browser.js` },
+  entry: { yokobot: `${__dirname}/src/browser` },
 
   output: {
     path: `${__dirname}/public`,
@@ -63,11 +63,17 @@ module.exports = {
   },
 
   module: {
-    rules: [{
-      test: /\.js$/,
-      exclude: /node_modules/,
-      use: ['babel-loader', 'eslint-loader'],
-    }],
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: ['babel-loader', 'eslint-loader'],
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
   },
 
   plugins: [
@@ -77,13 +83,18 @@ module.exports = {
 
     new CleanWebpackPlugin(),
 
+    new HtmlWebpackPlugin({
+      title: process.env.BOT,
+      favicon: './src/browser/favicon.png',
+      minify: !dev,
+      hash: true,
+    }),
+
     dev
       ? () => {}
       : new TerserPlugin({
         parallel: true,
         terserOptions: { ecma: 6 },
       }),
-
-    new HtmlWebpackPlugin({}),
   ],
 };

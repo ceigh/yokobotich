@@ -101,48 +101,56 @@ class Yokobot {
   }
 
   checkSkip(client, channel, usr, msg) {
-    changeClientApi(client);
+    return new Promise((resolve, reject) => {
+      changeClientApi(client);
 
-    if (this.rgxp.skip.test(msg)) {
-      if (!this.state.usrs.includes(usr.username)) {
-        if (this.seId && this.seJwt) {
-          client.api({
-            url: `${seApiUrl}points/${this.seId}/${usr.username}`,
-          }, (e, r, b) => {
-            if (e) {
-              console.error(e);
-            } else if (b.points < this.cost) {
-              client.action(channel,
-                phrases.onNoPoints(usr['display-name']));
-              this.state.curr = 0;
-              this.state.usrs = [];
-            } else {
-              this.state.curr += 1;
-              this.state.usrs.push(usr.username);
-
-              if (this.state.curr === this.state.skip) {
-                client.action(channel, phrases.getPhrase(this.channel));
-                this.addPoints(client, this.state.usrs, -this.cost);
+      if (this.rgxp.skip.test(msg)) {
+        if (!this.state.usrs.includes(usr.username)) {
+          if (this.seId && this.seJwt) {
+            client.api({
+              url: `${seApiUrl}points/${this.seId}/${usr.username}`,
+            }, (e, r, b) => {
+              if (e) {
+                reject(e);
+              } else if (b.points < this.cost) {
+                client.action(channel,
+                  phrases.onNoPoints(usr['display-name']));
                 this.state.curr = 0;
                 this.state.usrs = [];
-              }
-            }
-          });
-        } else {
-          this.state.curr += 1;
-          this.state.usrs.push(usr.username);
+              } else {
+                this.state.curr += 1;
+                this.state.usrs.push(usr.username);
 
-          if (this.state.curr === this.state.skip) {
-            client.action(channel, phrases.getPhrase(this.channel));
-            this.state.curr = 0;
-            this.state.usrs = [];
+                if (this.state.curr === this.state.skip) {
+                  client.action(channel, phrases.getPhrase(this.channel));
+                  this.addPoints(client, this.state.usrs, -this.cost);
+                  this.state.curr = 0;
+                  this.state.usrs = [];
+                }
+              }
+
+              resolve(this.state);
+            });
+          } else {
+            this.state.curr += 1;
+            this.state.usrs.push(usr.username);
+
+            if (this.state.curr === this.state.skip) {
+              client.action(channel, phrases.getPhrase(this.channel));
+              this.state.curr = 0;
+              this.state.usrs = [];
+            }
+
+            resolve(this.state);
           }
         }
+      } else {
+        this.state.curr = 0;
+        this.state.usrs = [];
+
+        resolve(this.state);
       }
-    } else {
-      this.state.curr = 0;
-      this.state.usrs = [];
-    }
+    });
   }
 
   addPoints(client, usrs, pts) {

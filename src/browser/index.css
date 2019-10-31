@@ -1,0 +1,13 @@
+main {
+  font-size: 10em;
+  text-align: center;
+  margin-top: 30vh;
+  color: #ca3f00;
+  font-weight: bold;
+}
+
+body {
+  background: #ff6000;
+  font-family: monospace;
+  overflow: hidden;
+}
