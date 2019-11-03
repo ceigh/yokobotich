@@ -13,8 +13,10 @@ const apiOrFetch = (client) => {
   if (jsEnv.isNode) return;
 
   client.api = (opts, callback) => {
-    const { url } = opts;
+    let { url } = opts;
     delete opts.url;
+
+    url = url[0] === '/' ? `https://api.twitch.tv/kraken${url}` : url;
 
     fetch(url, opts)
       .then((resp) => resp.json())
