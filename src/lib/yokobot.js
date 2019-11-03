@@ -1,32 +1,13 @@
-// Imports
-const jsEnv = require('browser-or-node');
+const Tmi = require('tmi.js').Client;
 const phrases = require('./phrases.js');
-
-// Vars
-const seApiUrl = 'https://api.streamelements.com/kappa/v2/';
+const { seApiUrl, define, apiOrFetch } = require('./helpers.js');
 
 
-// Funcs
-const define = (item) => `Define ${item} in cfg`;
-
-const changeClientApi = (client) => {
-  if (jsEnv.isNode) return;
-
-  client.api = (opts, callback) => {
-    const { url } = opts;
-    delete opts.url;
-
-    fetch(url, opts)
-      .then((resp) => resp.json())
-      .then((json) => callback(null, null, json))
-      .catch((err) => callback(err));
-  };
-};
-
-
-// Classes
-class Yokobot {
+module.exports = class YokoBot {
   constructor(cfg) {
+    const debug = cfg.DEBUG || true;
+    this.debug = debug;
+
     if (cfg.BOT) this.bot = cfg.BOT;
     else throw Error(define('BOT'));
 
@@ -43,9 +24,9 @@ class Yokobot {
       if (cfg.COST) this.cost = Math.round(+cfg.COST);
       else {
         this.cost = 100;
-        console.warn(`${define('COST')} (100 by default)`);
+        if (debug) console.warn(`${define('COST')} (100 by default)`);
       }
-    } else {
+    } else if (debug) {
       console.warn(`${define('STREAMELEMENTS_JWT '
       + 'and STREAMELEMENTS_ID')} for points`);
     }
@@ -56,7 +37,7 @@ class Yokobot {
       usrs: [],
     };
     if (cfg.SKIP) this.state.skip = Math.round(+cfg.SKIP);
-    else console.warn(`${define('SKIP')} (4 by default)`);
+    else if (debug) console.warn(`${define('SKIP')} (4 by default)`);
 
     this.rgxp = {
       set: /^!говно (\d+)$/,
@@ -65,18 +46,18 @@ class Yokobot {
         + '4оОаА][vV][nN][oO0оО]).*'),
     };
     if (cfg.RGXP_SET) this.rgxp.set = new RegExp(cfg.RGXP_SET);
-    else {
+    else if (debug) {
       console.warn(`${define('custom RGXP_SET')} ${
         `(${this.rgxp.set}`.substr(0, 20)}.../ by default)`);
     }
     if (cfg.RGXP_SKIP) this.rgxp.skip = new RegExp(cfg.RGXP_SKIP);
-    else {
+    else if (debug) {
       console.warn(`${define('custom RGXP_SKIP')} ${
         `(${this.rgxp.skip}`.substr(0, 20)}.../ by default)\n`);
     }
 
     this.opts = {
-      options: { debug: true },
+      options: { debug },
       connection: {
         reconnect: true,
         secure: true,
@@ -87,85 +68,105 @@ class Yokobot {
         password: this.token,
       },
     };
+
+    const that = this;
+    const client = new Tmi(this.opts);
+    client.on('chat', (channel, usr, msg) => {
+      that._checkSet(channel, usr, msg)
+        .then(() => that._checkSkip(channel, usr, msg));
+    });
+    apiOrFetch(client);
+    this.client = client;
   }
 
-  checkSet(client, channel, usr, msg) {
-    if (usr.mod || (usr.badges && usr.badges.broadcaster)) {
+  connect() {
+    this.client.connect();
+  }
+
+  _checkSet(channel, usr, msg) {
+    return new Promise((resolve) => {
+      const { badges } = usr;
+      if (!(badges && badges.broadcaster) && !usr.mod) resolve();
+
       const match = msg.match(this.rgxp.set);
-      if (match) {
-        const val = +match[1];
-        this.state.skip = val;
-        client.action(channel, phrases.onSet(val));
-      }
-    }
-  }
+      if (!match) resolve();
 
-  checkSkip(client, channel, usr, msg) {
-    return new Promise((resolve, reject) => {
-      changeClientApi(client);
-
-      if (this.rgxp.skip.test(msg)) {
-        if (!this.state.usrs.includes(usr.username)) {
-          if (this.seId && this.seJwt) {
-            client.api({
-              url: `${seApiUrl}points/${this.seId}/${usr.username}`,
-            }, (e, r, b) => {
-              if (e) {
-                reject(e);
-              } else if (b.points < this.cost) {
-                client.action(channel,
-                  phrases.onNoPoints(usr['display-name']));
-                this.state.curr = 0;
-                this.state.usrs = [];
-              } else {
-                this.state.curr += 1;
-                this.state.usrs.push(usr.username);
-
-                if (this.state.curr === this.state.skip) {
-                  client.action(channel, phrases.getPhrase(this.channel));
-                  this.addPoints(client, this.state.usrs, -this.cost);
-                  this.state.curr = 0;
-                  this.state.usrs = [];
-                }
-              }
-
-              resolve(this.state);
-            });
-          } else {
-            this.state.curr += 1;
-            this.state.usrs.push(usr.username);
-
-            if (this.state.curr === this.state.skip) {
-              client.action(channel, phrases.getPhrase(this.channel));
-              this.state.curr = 0;
-              this.state.usrs = [];
-            }
-
-            resolve(this.state);
-          }
-        }
-      } else {
-        this.state.curr = 0;
-        this.state.usrs = [];
-
-        resolve(this.state);
-      }
+      const num = +match[1];
+      const val = num || 1;
+      this.state.skip = val;
+      this.client.action(channel, phrases.onSet(val));
     });
   }
 
-  addPoints(client, usrs, pts) {
-    if (this.seJwt && this.seId) {
-      usrs.forEach((u) => {
+  _checkSkip(channel, usr, msg) {
+    if (this.rgxp.skip.test(msg)) {
+      const state = JSON.parse(JSON.stringify(this.state));
+      const { username } = usr;
+
+      if (state.usrs.includes(username)) return;
+
+      const {
+        seId, seJwt, client, debug,
+      } = this;
+      const streamer = this.channel;
+
+      if (seId && seJwt) {
         client.api({
-          url: `${seApiUrl}points/${this.seId}/${u}/${pts}`,
-          method: 'PUT',
-          headers: { Authorization: `Bearer ${this.seJwt}` },
-        }, (e, r, b) => (e ? console.error(e) : console.log(b.message)));
-      });
+          url: `${seApiUrl}/points/${seId}/${username}`,
+        }, (e, r, b) => {
+          const { cost } = this;
+
+          if (e) {
+            if (debug) throw new Error(e);
+            else console.error(e);
+          } else if (b.points < cost) {
+            this.state.curr = 0;
+            this.state.usrs = [];
+            this.client.action(channel, phrases.onNoPoints(usr['display-name']));
+          } else {
+            state.usrs.push(username);
+            if (state.curr + 1 === state.skip) {
+              this.state.curr = 0;
+              this.state.usrs = [];
+              this.client.action(channel, phrases.getPhrase(streamer));
+              this._addPoints(client, state.usrs, -cost);
+            } else {
+              this.state.curr += 1;
+              this.state.usrs.push(username);
+            }
+          }
+          if (debug) console.log(this.state);
+        });
+      } else {
+        state.usrs.push(username);
+        if (state.curr + 1 === state.skip) {
+          this.client.action(channel, phrases.getPhrase(streamer));
+          this.state.curr = 0;
+          this.state.usrs = [];
+        } else {
+          this.state.curr += 1;
+          this.state.usrs.push(usr.username);
+        }
+      }
+    } else {
+      this.state.curr = 0;
+      this.state.usrs = [];
     }
   }
-}
 
+  _addPoints(client, usrs, pts) {
+    const { seId, seJwt } = this;
+    if (!seId || !seJwt) return;
 
-// Exports
-module.exports = Yokobot;
+    const url = `${seApiUrl}/points/${seId}`;
+    const headers = { Authorization: `Bearer ${seJwt}` };
+
+    usrs.forEach((u) => {
+      client.api({
+        url: `${url}/${u}/${pts}`,
+        method: 'PUT',
+        headers,
+      }, (e, r, b) => (e ? console.error(e) : console.log(b.message)));
+    });
+  }
+};

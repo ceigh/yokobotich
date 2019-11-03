@@ -86,6 +86,12 @@ const tryToConnect = () => {
 updateUI();
 console.info('Initial state: ', yokobot.state);
 
+window.addEventListener('beforeunload', (e) => {
+  e.preventDefault();
+  if (client.server) client.disconnect().then(() => e.returnValue = '');
+  else e.returnValue = '';
+});
+
 client.on('chat', onChat);
 tryToConnect();
 setInterval(tryToConnect, 10000);
