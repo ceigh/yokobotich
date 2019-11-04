@@ -1,4 +1,5 @@
 const Tmi = require('tmi.js').Client;
+const Queue = require('better-queue');
 const phrases = require('./phrases.js');
 const { seApiUrl, define, apiOrFetch } = require('./helpers.js');
 
@@ -71,10 +72,23 @@ module.exports = class YokoBot {
 
     const that = this;
     const client = new Tmi(this.opts);
-    client.on('chat', (channel, usr, msg) => {
+
+    const q = new Queue((input, cb) => {
+      const { channel, usr, msg } = input;
       that._checkSet(channel, usr, msg)
-        .then(() => that._checkSkip(channel, usr, msg));
+        .then(() => that._checkSkip(channel, usr, msg)
+          .finally(() => cb(null, that.state)))
+        .catch(() => cb(null, that.state));
     });
+
+    q.on('task_finish',
+      (taskId, result, stats) => {
+        if (debug) console.log(result, stats.elapsed || 0);
+      });
+
+    client.on('chat',
+      (channel, usr, msg) => q.push({ channel, usr, msg }));
+
     apiOrFetch(client);
     this.client = client;
   }
@@ -83,81 +97,100 @@ module.exports = class YokoBot {
     this.client.connect();
   }
 
+  _resetState() {
+    const { state } = this;
+    state.curr = 0;
+    state.usrs = [];
+  }
+
   _checkSet(channel, usr, msg) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const { badges } = usr;
-      if (!(badges && badges.broadcaster) && !usr.mod) resolve();
+      if (!(badges && badges.broadcaster) && !usr.mod) {
+        resolve();
+        return;
+      }
 
       const match = msg.match(this.rgxp.set);
-      if (!match) resolve();
+      if (!match) {
+        resolve();
+        return;
+      }
 
       const num = +match[1];
       const val = num || 1;
+      this._resetState();
       this.state.skip = val;
       this.client.action(channel, phrases.onSet(val));
+      reject();
     });
   }
 
   _checkSkip(channel, usr, msg) {
-    if (this.rgxp.skip.test(msg)) {
+    return new Promise((resolve, reject) => {
+      if (!this.rgxp.skip.test(msg)) {
+        this._resetState();
+        resolve();
+        return;
+      }
+
       const state = JSON.parse(JSON.stringify(this.state));
       const { username } = usr;
-
-      if (state.usrs.includes(username)) return;
+      if (state.usrs.includes(username)) {
+        resolve();
+        return;
+      }
 
       const {
         seId, seJwt, client, debug,
       } = this;
       const streamer = this.channel;
 
-      if (seId && seJwt) {
-        client.api({
-          url: `${seApiUrl}/points/${seId}/${username}`,
-        }, (e, r, b) => {
-          const { cost } = this;
-
-          if (e) {
-            if (debug) throw new Error(e);
-            else console.error(e);
-          } else if (b.points < cost) {
-            this.state.curr = 0;
-            this.state.usrs = [];
-            this.client.action(channel, phrases.onNoPoints(usr['display-name']));
-          } else {
-            state.usrs.push(username);
-            if (state.curr + 1 === state.skip) {
-              this.state.curr = 0;
-              this.state.usrs = [];
-              this.client.action(channel, phrases.getPhrase(streamer));
-              this._addPoints(client, state.usrs, -cost);
-            } else {
-              this.state.curr += 1;
-              this.state.usrs.push(username);
-            }
-          }
-          if (debug) console.log(this.state);
-        });
-      } else {
-        state.usrs.push(username);
+      if (!seId || !seJwt) {
         if (state.curr + 1 === state.skip) {
+          this._resetState();
           this.client.action(channel, phrases.getPhrase(streamer));
-          this.state.curr = 0;
-          this.state.usrs = [];
         } else {
           this.state.curr += 1;
           this.state.usrs.push(usr.username);
         }
+        resolve();
+        return;
       }
-    } else {
-      this.state.curr = 0;
-      this.state.usrs = [];
-    }
+
+      client.api({
+        url: `${seApiUrl}/points/${seId}/${username}`,
+      }, (e, r, b) => {
+        const { cost } = this;
+
+        if (e) {
+          if (debug) throw new Error(e);
+          else console.error(e);
+          reject(e);
+        } else if (b.points < cost) {
+          this._resetState();
+          this.client.action(channel, phrases.onNoPoints(usr['display-name']));
+          resolve();
+        } else {
+          if (state.curr + 1 === state.skip) {
+            this._resetState();
+            this.client.action(channel, phrases.getPhrase(streamer));
+            this._addPoints(client, [...state.usrs, username], -cost);
+          } else {
+            this.state.curr += 1;
+            this.state.usrs.push(username);
+          }
+          resolve();
+        }
+      });
+    });
   }
 
   _addPoints(client, usrs, pts) {
     const { seId, seJwt } = this;
     if (!seId || !seJwt) return;
 
+    const { debug } = this;
     const url = `${seApiUrl}/points/${seId}`;
     const headers = { Authorization: `Bearer ${seJwt}` };
 
@@ -166,7 +199,12 @@ module.exports = class YokoBot {
         url: `${url}/${u}/${pts}`,
         method: 'PUT',
         headers,
-      }, (e, r, b) => (e ? console.error(e) : console.log(b.message)));
+      }, (e, r, b) => {
+        if (e) {
+          if (debug) throw new Error(e);
+          else console.error(e);
+        } else if (debug) console.log(b.message);
+      });
     });
   }
 };
