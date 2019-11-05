@@ -1,3 +1,4 @@
+
 Configuration
 =============
 
@@ -30,11 +31,18 @@ To set up your bot you need to define some variables in these config files:
   - `cost` - how many points command cost
 
 **`phrases.json` - define your bot's answers here**
+  - `onSkip` - messages when skip event works
+  
+    - `starts` - the pick of start message
 
-  - `starts` - the pick of start message
+    - `mids` - bodys of message
 
-  - `mids` - bodys of message
+    - `ends` - the ends of messages, adds randomly
 
-  - `ends` - the ends of messages, adds randomly
+    - `beforeMsg` - funny word or phrase, that randomly added to any message
+  
+  - `onSet` - message when somebody (mods or broadcaster) set skip value amount, *don't forget `%d` in your template, it replace automatically with new amount of skip value*
 
-  - `beforeMsg` - funny word or phrase, that randomly added to any message
+  - `onNoPoints` - message when user have enough points to execute command, *don't forget `%s` in your template, it replace automatically to user, who execute command*
+
+  - `emoji` - smile, which adds to end of every skip message

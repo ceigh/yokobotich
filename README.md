@@ -1,7 +1,7 @@
 
 # YokoBot
 
-Skip notification bot for twitch chat, based on tmi.js
+Skip notification bot for twitch chat, based on [tmi.js](https://tmijs.com)
 
 # Install
 
@@ -9,18 +9,20 @@ Skip notification bot for twitch chat, based on tmi.js
 
 # Configure
 
-Look at the `/config` dir
+Look at the `/config` directory,
 
-Define auth data at `auth.json`,
+define auth data at `auth.json`,
  
-bot's options at `opts.json`
+bot's options at `opts.json`,
 
 and bot's phrases at `phrases.json`.
 
 # Launch
 
 You can host bot from node console
+
 `npm start`
 
-or from browser web interface 
+or from browser web interface
+
 `npm run browser`
