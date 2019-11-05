@@ -1,48 +1,33 @@
-require('dotenv').config();
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const { DefinePlugin } = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
+
 const SimpleCrypto = require('simple-crypto-js').default;
 
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const { DefinePlugin } = require('webpack');
+const { getDebug, define } = require('./src/lib/_');
+const optsCfg = require('./config/opts.json');
+const authCfg = require('./config/auth.json');
 
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const dev = NODE_ENV === 'development';
+
+const cfg = Object.assign(authCfg, optsCfg);
+const debug = getDebug(cfg);
 
 
 const generateCfgHash = () => {
   console.info('Encoding cfg...\n');
 
-  const secret = process.env.SECRET;
-  if (!secret) throw Error('Define SECRET env variable');
+  const { secret } = cfg;
+  if (!secret) throw Error(define('secret', 'auth'));
   const simpleCrypto = new SimpleCrypto(secret);
 
-  const cfg = {
-    BOT: process.env.BOT,
-    CHANNEL: process.env.CHANNEL,
-    TOKEN: process.env.TOKEN,
-
-    SKIP: !process.env.SKIP ? undefined
-      : Math.round(Number(process.env.SKIP)),
-
-    RGXP_SET: !process.env.RGXP_SET ? undefined
-      : new RegExp(process.env.RGXP_SET),
-    RGXP_SKIP: !process.env.RGXP_SKIP ? undefined
-      : new RegExp(process.env.RGXP_SKIP),
-
-    STREAMELEMENTS_ID: process.env.STREAMELEMENTS_ID,
-    STREAMELEMENTS_JWT: process.env.STREAMELEMENTS_JWT,
-    COST: !process.env.COST ? undefined
-      : Math.round(Number(process.env.COST)),
-  };
-
-  return JSON.stringify(simpleCrypto.encrypt(cfg));
+  return simpleCrypto.encrypt(cfg);
 };
 
 
 module.exports = {
-  mode: NODE_ENV,
-  watch: dev,
+  mode: debug ? 'development' : 'production',
+  watch: debug,
   watchOptions: { aggregateTimeout: 400 },
   devtool: '(none)',
 
@@ -57,7 +42,7 @@ module.exports = {
   output: {
     path: `${__dirname}/public`,
     publicPath: '/',
-    filename: dev
+    filename: debug
       ? './[name].js'
       : './[name].[hash].min.js',
   },
@@ -67,7 +52,7 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: ['babel-loader', 'eslint-loader'],
+        use: debug ? [] : ['babel-loader', 'eslint-loader'],
       },
       {
         test: /\.css$/i,
@@ -77,24 +62,29 @@ module.exports = {
   },
 
   plugins: [
-    new DefinePlugin({
-      CFG_HASH: generateCfgHash(),
-    }),
-
     new CleanWebpackPlugin(),
 
-    new HtmlWebpackPlugin({
-      title: process.env.BOT,
-      favicon: './src/browser/favicon.png',
-      minify: !dev,
-      hash: true,
+    new DefinePlugin({
+      CFG_HASH: JSON.stringify(generateCfgHash()),
     }),
 
-    dev
+    debug
       ? () => {}
       : new TerserPlugin({
         parallel: true,
         terserOptions: { ecma: 6 },
       }),
+
+    new HtmlWebpackPlugin({
+      template: './src/browser/index.ejs',
+      favicon: './src/browser/favicon.png',
+      templateParameters: {
+        title: `0/${cfg.skip || 4} - ${cfg.name || 'YokoBot'}`,
+        counter: `0/${cfg.skip || 4}`,
+      },
+
+      minify: !debug,
+      hash: true,
+    }),
   ],
 };

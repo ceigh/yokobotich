@@ -1,0 +1,9 @@
+{
+  "debug": true,
+  "skip": 4,
+  "rgxp": {
+    "set": "",
+    "skip": ""
+  },
+  "cost": 100
+}

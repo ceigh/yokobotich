@@ -1,35 +1,33 @@
 const Tmi = require('tmi.js').Client;
 const Queue = require('better-queue');
-const phrases = require('./phrases.js');
-const { seApiUrl, define, apiOrFetch } = require('./helpers.js');
+const Memory = require('better-queue-memory');
+const _ = require('./_');
 
 
 module.exports = class YokoBot {
   constructor(cfg) {
-    const debug = cfg.DEBUG || true;
+    const { debug } = cfg;
     this.debug = debug;
 
-    if (cfg.BOT) this.bot = cfg.BOT;
-    else throw Error(define('BOT'));
+    if (cfg.name) this.name = cfg.name;
+    else throw Error(_.define('name', 'auth'));
 
-    if (cfg.CHANNEL) this.channel = cfg.CHANNEL;
-    else throw Error(define('CHANNEL'));
+    if (cfg.streamer) this.streamer = cfg.streamer;
+    else throw Error(_.define('streamer', 'auth'));
 
-    if (cfg.TOKEN) this.token = cfg.TOKEN;
-    else throw Error(define('TOKEN'));
+    if (cfg.token) this.token = cfg.token;
+    else throw Error(_.define('token', 'auth'));
 
-    if (cfg.STREAMELEMENTS_JWT && cfg.STREAMELEMENTS_ID) {
-      this.seJwt = cfg.STREAMELEMENTS_JWT;
-      this.seId = cfg.STREAMELEMENTS_ID;
+    if (cfg.se.jwt && cfg.se.id) {
+      this.se = cfg.se;
 
-      if (cfg.COST) this.cost = Math.round(+cfg.COST);
+      if (cfg.cost) this.cost = cfg.cost;
       else {
         this.cost = 100;
-        if (debug) console.warn(`${define('COST')} (100 by default)`);
+        if (debug) console.warn(`${_.define('cost')} (100 by default)`);
       }
     } else if (debug) {
-      console.warn(`${define('STREAMELEMENTS_JWT '
-      + 'and STREAMELEMENTS_ID')} for points`);
+      console.warn(`${_.define('se.jwt and se.id', 'auth')} for points`);
     }
 
     this.state = {
@@ -37,8 +35,8 @@ module.exports = class YokoBot {
       curr: 0,
       usrs: [],
     };
-    if (cfg.SKIP) this.state.skip = Math.round(+cfg.SKIP);
-    else if (debug) console.warn(`${define('SKIP')} (4 by default)`);
+    if (cfg.skip) this.state.skip = cfg.skip;
+    else if (debug) console.warn(`${_.define('skip')} (4 by default)`);
 
     this.rgxp = {
       set: /^!говно (\d+)$/,
@@ -46,14 +44,14 @@ module.exports = class YokoBot {
         + '[вВB][нНH][oOоО0]|[nN][uUyYуУ] ?[iIl1&] ?[gG][oOaA0'
         + '4оОаА][vV][nN][oO0оО]).*'),
     };
-    if (cfg.RGXP_SET) this.rgxp.set = new RegExp(cfg.RGXP_SET);
+    if (cfg.rgxp.set) this.rgxp.set = new RegExp(cfg.rgxp.set);
     else if (debug) {
-      console.warn(`${define('custom RGXP_SET')} ${
+      console.warn(`${_.define('custom rgxp.set')} ${
         `(${this.rgxp.set}`.substr(0, 20)}.../ by default)`);
     }
-    if (cfg.RGXP_SKIP) this.rgxp.skip = new RegExp(cfg.RGXP_SKIP);
+    if (cfg.rgxp.skip) this.rgxp.skip = new RegExp(cfg.rgxp.skip);
     else if (debug) {
-      console.warn(`${define('custom RGXP_SKIP')} ${
+      console.warn(`${_.define('custom rgxp.skip')} ${
         `(${this.rgxp.skip}`.substr(0, 20)}.../ by default)\n`);
     }
 
@@ -63,9 +61,9 @@ module.exports = class YokoBot {
         reconnect: true,
         secure: true,
       },
-      channels: [this.channel],
+      channels: [this.streamer],
       identity: {
-        username: this.bot,
+        username: this.name,
         password: this.token,
       },
     };
@@ -79,7 +77,7 @@ module.exports = class YokoBot {
         .then(() => that._checkSkip(channel, usr, msg)
           .finally(() => cb(null, that.state)))
         .catch(() => cb(null, that.state));
-    });
+    }, { store: new Memory() });
 
     q.on('task_finish',
       (taskId, result, stats) => {
@@ -89,7 +87,7 @@ module.exports = class YokoBot {
     client.on('chat',
       (channel, usr, msg) => q.push({ channel, usr, msg }));
 
-    apiOrFetch(client);
+    _.apiOrFetch(client);
     this.client = client;
   }
 
@@ -121,7 +119,7 @@ module.exports = class YokoBot {
       const val = num || 1;
       this._resetState();
       this.state.skip = val;
-      this.client.action(channel, phrases.onSet(val));
+      this.client.action(channel, _.phrases.onSet(val));
       reject();
     });
   }
@@ -142,14 +140,16 @@ module.exports = class YokoBot {
       }
 
       const {
-        seId, seJwt, client, debug,
+        se, client, debug, streamer,
       } = this;
-      const streamer = this.channel;
 
-      if (!seId || !seJwt) {
+      if (!se.id || !se.jwt) {
         if (state.curr + 1 === state.skip) {
+          const phrase = _.phrases.get(streamer);
           this._resetState();
-          this.client.action(channel, phrases.getPhrase(streamer));
+          this.client.action(channel, phrase);
+          this.client.action(channel, phrase);
+          this.client.action(channel, phrase);
         } else {
           this.state.curr += 1;
           this.state.usrs.push(usr.username);
@@ -159,7 +159,7 @@ module.exports = class YokoBot {
       }
 
       client.api({
-        url: `${seApiUrl}/points/${seId}/${username}`,
+        url: `${_.seApiUrl}/points/${se.id}/${username}`,
       }, (e, r, b) => {
         const { cost } = this;
 
@@ -169,12 +169,15 @@ module.exports = class YokoBot {
           reject(e);
         } else if (b.points < cost) {
           this._resetState();
-          this.client.action(channel, phrases.onNoPoints(usr['display-name']));
+          this.client.action(channel, _.phrases.onNoPoints(usr['display-name']));
           resolve();
         } else {
           if (state.curr + 1 === state.skip) {
+            const phrase = _.phrases.get(streamer);
             this._resetState();
-            this.client.action(channel, phrases.getPhrase(streamer));
+            this.client.action(channel, phrase);
+            this.client.action(channel, phrase);
+            this.client.action(channel, phrase);
             this._addPoints(client, [...state.usrs, username], -cost);
           } else {
             this.state.curr += 1;
@@ -187,12 +190,12 @@ module.exports = class YokoBot {
   }
 
   _addPoints(client, usrs, pts) {
-    const { seId, seJwt } = this;
-    if (!seId || !seJwt) return;
+    const { se } = this;
+    if (!se.id || !se.jwt) return;
 
     const { debug } = this;
-    const url = `${seApiUrl}/points/${seId}`;
-    const headers = { Authorization: `Bearer ${seJwt}` };
+    const url = `${_.seApiUrl}/points/${se.id}`;
+    const headers = { Authorization: `Bearer ${se.jwt}` };
 
     usrs.forEach((u) => {
       client.api({
