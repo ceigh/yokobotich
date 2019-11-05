@@ -26,3 +26,5 @@ You can host bot from node console
 or from browser web interface
 
 `npm run browser`
+
+![Chat picture](https://i.imgur.com/RYSGBop.png "Hecig's chat")
