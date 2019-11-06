@@ -66,6 +66,7 @@ module.exports = {
 
     new DefinePlugin({
       CFG_HASH: JSON.stringify(generateCfgHash()),
+      DEBUG: debug,
     }),
 
     debug

@@ -81,7 +81,9 @@ module.exports = class YokoBot {
 
     q.on('task_finish',
       (taskId, result, stats) => {
+        const { browserCb } = this;
         if (debug) console.log(result, stats.elapsed || 0);
+        if (browserCb) browserCb(result);
       });
 
     client.on('chat',

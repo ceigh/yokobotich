@@ -1,13 +1,40 @@
-main {
-  font-size: 10em;
+body {
+  background: #ececec;
+  font-family: monospace;
+  overflow: hidden;
   text-align: center;
-  margin-top: 30vh;
-  color: #ca3f00;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  margin-top: 27vh;
+}
+
+
+noscript, #error {
+  font-size: 1.5em;
+  color: #f44336;
+  font-style: italic;
+}
+
+#counter {
+  font-size: 15em;
+  color: #292929;
   font-weight: bold;
 }
 
-body {
-  background: #ff6000;
-  font-family: monospace;
-  overflow: hidden;
+#cost {
+  font-size: 1.5em;
+  color: #aaa;
+}
+
+
+::selection {
+  background-color: #f44336;
+  color: #292929;
+}
+
+#counter::selection {
+  color: #ececec;
 }

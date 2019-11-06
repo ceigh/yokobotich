@@ -55,7 +55,8 @@
   },
   "eslintConfig": {
     "globals": {
-      "CFG_HASH": "readonly"
+      "CFG_HASH": "readonly",
+      "DEBUG": "readonly"
     },
     "env": {
       "browser": true,
