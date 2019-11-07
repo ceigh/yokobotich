@@ -54,7 +54,7 @@ module.exports = {
 
   output: {
     path: `${__dirname}/dist`,
-    publicPath: '/',
+    publicPath: '/yokobot/',
     filename: debug
       ? './[name].js'
       : './[name].[hash].min.js',
