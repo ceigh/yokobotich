@@ -20,7 +20,7 @@ noscript, #error {
 
 #counter {
   font-size: 15em;
-  color: #292929;
+  color: #161616;
   font-weight: bold;
 }
 
@@ -32,7 +32,7 @@ noscript, #error {
 
 ::selection {
   background-color: #f44336;
-  color: #292929;
+  color: #161616;
 }
 
 #counter::selection {

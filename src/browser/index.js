@@ -17,7 +17,7 @@ const updateUI = (newState) => {
 };
 
 
-window.onbeforeunload = () => 'Leave?';
+if (!DEBUG) window.onbeforeunload = () => 'Leave?';
 
 auth()
   .then((cfg) => {

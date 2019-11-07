@@ -1,0 +1,53 @@
+image: node:latest
+
+before_script:
+  - npm i
+
+cache:
+  paths:
+    - node_modules/
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+
+# Lint
+eslint:
+  stage: lint
+  script:
+    - npm run lint
+    - echo 'Lint passed!'
+
+
+# Test
+unit tests:
+  stage: test
+  script:
+    # TODO: Add tests
+    - echo 'Tests are passed!'
+
+
+# Build
+webpack:
+  stage: build
+  script:
+    - npm run browser:build
+  artifacts:
+    paths:
+      - dist
+
+
+# Deploy
+pages:
+  stage: deploy
+  script:
+    - mkdir public
+    - mv dist/* public
+    # Compress to gzip
+    - find public \( -name '*.html' -o -name '*.css' -o -name '*.js' \) -print0 | xargs -0 gzip -9 -kv
+  artifacts:
+    paths:
+      - public

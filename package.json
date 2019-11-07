@@ -6,7 +6,6 @@
     "better-queue-memory": "^1.0.4",
     "browser-or-node": "^1.2.1",
     "crypto-js": "^3.1.9-1",
-    "jsonp": "^0.2.1",
     "simple-crypto-js": "^2.2.0",
     "tmi.js": "^1.5.0"
   },
@@ -16,6 +15,7 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint .",
     "lint:fix": "./node_modules/.bin/eslint . --fix",
+    "test": "node_modules/.bin/jasmine",
     "start": "node src/node/index.js",
     "browser": "./node_modules/.bin/webpack-dev-server",
     "browser:build": "DEBUG=false ./node_modules/.bin/webpack"
@@ -36,12 +36,13 @@
   },
   "homepage": "https://gitlab.com/ceigh/yokobot#readme",
   "devDependencies": {
-    "@babel/core": "^7.6.4",
-    "@babel/preset-env": "^7.6.3",
+    "@babel/core": "^7.7.2",
+    "@babel/preset-env": "^7.7.1",
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^3.2.0",
+    "dotenv": "^8.2.0",
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-loader": "^3.0.2",

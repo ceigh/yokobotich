@@ -1,4 +1,3 @@
-
 const SimpleCrypto = require('simple-crypto-js').default;
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -6,13 +5,25 @@ const TerserPlugin = require('terser-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { DefinePlugin } = require('webpack');
 const { getDebug, define } = require('./src/lib/_');
+
 const optsCfg = require('./config/opts.json');
-const authCfg = require('./config/auth.json');
+let authCfg = require('./config/auth.json');
 
 
-const cfg = Object.assign(authCfg, optsCfg);
-const debug = getDebug(cfg);
+const debug = getDebug(optsCfg);
+let cfg;
 
+
+const productionCfg = () => {
+  if (debug) return;
+
+  require('dotenv').config();
+  
+  const { authCfgEnv } = process.env;
+  if (!authCfgEnv) return;
+
+  authCfg = JSON.parse(authCfgEnv);
+};
 
 const generateCfgHash = () => {
   console.info('Encoding cfg...\n');
@@ -24,6 +35,9 @@ const generateCfgHash = () => {
   return simpleCrypto.encrypt(cfg);
 };
 
+
+if (!debug) productionCfg();
+cfg = Object.assign(authCfg, optsCfg);
 
 module.exports = {
   mode: debug ? 'development' : 'production',
@@ -40,7 +54,7 @@ module.exports = {
   entry: { yokobot: `${__dirname}/src/browser` },
 
   output: {
-    path: `${__dirname}/public`,
+    path: `${__dirname}/dist`,
     publicPath: '/',
     filename: debug
       ? './[name].js'
