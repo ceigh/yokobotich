@@ -47,7 +47,7 @@ const auth = () => new Promise((resolve, reject) => {
   if (!secret) reject(new Error('No secret, use ?secret url parameter'));
 
   // Hide secret from url string
-  if (!DEBUG) window.history.pushState(null, null, `${window.location.origin}/yokobot)`);
+  if (!DEBUG) window.history.pushState(null, null, `${window.location.origin}/yokobot`);
 
   const simpleCrypto = new SimpleCrypto(secret);
 
