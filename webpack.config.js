@@ -1,3 +1,4 @@
+require('dotenv').config();
 const SimpleCrypto = require('simple-crypto-js').default;
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -17,8 +18,6 @@ let cfg;
 const productionCfg = () => {
   if (debug) return;
 
-  require('dotenv').config();
-  
   const { authCfgEnv } = process.env;
   if (!authCfgEnv) return;
 
