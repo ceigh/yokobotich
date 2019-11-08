@@ -41,7 +41,7 @@ const hideSecret = () => {
   if (DEBUG) return;
   const { location } = window;
   window.history.pushState(null, null,
-    `${location.origin}${location.pathname}/`);
+    `${location.origin}${location.pathname}`);
 };
 
 const auth = () => new Promise((resolve, reject) => {
