@@ -6,7 +6,12 @@ const _ = require('./_');
 
 module.exports = class YokoBot {
   constructor(cfg) {
-    const { debug } = cfg;
+    let debug;
+    try {
+      debug = DEBUG;
+    } catch {
+      debug = true;
+    }
     this.debug = debug;
 
     if (cfg.name) this.name = cfg.name;

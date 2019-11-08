@@ -9,18 +9,13 @@ const seApiUrl = 'https://api.streamelements.com/kappa/v2';
 
 
 // Funcs
-const getDebug = (cfg) => {
-  const { DEBUG } = process.env;
+const getDebug = () => {
   let debug;
-
+  const { DEBUG } = process.env;
   if (DEBUG) {
     if (DEBUG === 'false') debug = false;
-    else if (DEBUG === 'true') debug = true;
-  } else {
-    debug = ['boolean', 'undefined'].includes(typeof cfg.debug)
-      ? true : cfg.debug;
-  }
-
+    if (DEBUG === 'true') debug = true;
+  } else debug = true;
   return debug;
 };
 
@@ -42,12 +37,16 @@ const apiOrFetch = (client) => {
   };
 };
 
+const hideSecret = () => {
+  if (DEBUG) return;
+  const { location } = window;
+  window.history.pushState(null, null,
+    `${location.origin}${location.pathname}/`);
+};
+
 const auth = () => new Promise((resolve, reject) => {
   const secret = new URL(window.location.href).searchParams.get('secret');
   if (!secret) reject(new Error('No secret, use ?secret url parameter'));
-
-  // Hide secret from url string
-  if (!DEBUG) window.history.pushState(null, null, `${window.location.origin}/yokobot`);
 
   const simpleCrypto = new SimpleCrypto(secret);
 
@@ -55,6 +54,7 @@ const auth = () => new Promise((resolve, reject) => {
   let decCfg;
   try {
     decCfg = JSON.parse(simpleCrypto.decrypt(encCfg));
+    hideSecret();
     resolve(decCfg);
   } catch {
     reject(new Error('Wrong secret'));

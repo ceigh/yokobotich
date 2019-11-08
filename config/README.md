@@ -18,8 +18,6 @@ To set up your bot you need to define some variables in these config files:
 
 **`opts.json` - bot's configuration**
 
-  - `debug` - `true`/`false`, depends on want you see console messages or not
-
   - `skip` - integer number of how many messages below needed to call comand
 
   - `rgxp` - object with regular expressions to fire commands
