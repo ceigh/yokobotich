@@ -1,6 +1,3 @@
-
-# YokoBot
-
 Skip notification bot for twitch chat, based on [tmi.js](https://tmijs.com)
 
 # Install
