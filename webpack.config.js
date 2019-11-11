@@ -7,6 +7,7 @@ const { DefinePlugin } = require('webpack');
 const { getDebug, define } = require('./src/lib/_');
 
 const optsCfg = require('./config/opts.json');
+const phrases = require('./config/phrases.json');
 let authCfg = require('./config/auth.json');
 
 
@@ -30,7 +31,7 @@ const generateCfgHash = () => {
 
 
 if (!debug) productionCfg();
-cfg = Object.assign(authCfg, optsCfg);
+cfg = Object.assign(authCfg, optsCfg, { phrases });
 
 module.exports = {
   mode: debug ? 'development' : 'production',

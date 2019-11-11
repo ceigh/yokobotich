@@ -23,6 +23,9 @@ module.exports = class YokoBot {
     if (cfg.token) this.token = cfg.token;
     else throw Error(_.define('token', 'auth'));
 
+    if (cfg.phrases) this.phrases = cfg.phrases;
+    else throw Error('Add phrases field to your cfg (see /config/phrases.json)');
+
     if (cfg.se.jwt && cfg.se.id) {
       this.se = cfg.se;
 
@@ -77,9 +80,9 @@ module.exports = class YokoBot {
     const client = new Tmi(this.opts);
 
     const q = new Queue((input, cb) => {
-      const { channel, usr, msg } = input;
-      that._checkSet(channel, usr, msg)
-        .then(() => that._checkSkip(channel, usr, msg)
+      const { chat, usr, msg } = input;
+      that._checkSet(chat, usr, msg)
+        .then(() => that._checkSkip(chat, usr, msg)
           .finally(() => cb(null, that.state)))
         .catch(() => cb(null, that.state));
     }, { store: new Memory() });
@@ -92,7 +95,7 @@ module.exports = class YokoBot {
       });
 
     client.on('chat',
-      (channel, usr, msg) => q.push({ channel, usr, msg }));
+      (chat, usr, msg) => q.push({ chat, usr, msg }));
 
     _.apiOrFetch(client);
     this.client = client;
@@ -108,7 +111,7 @@ module.exports = class YokoBot {
     state.usrs = [];
   }
 
-  _checkSet(channel, usr, msg) {
+  _checkSet(chat, usr, msg) {
     return new Promise((resolve, reject) => {
       const { badges } = usr;
       if (!(badges && badges.broadcaster) && !usr.mod) {
@@ -126,12 +129,12 @@ module.exports = class YokoBot {
       const val = num || 1;
       this._resetState();
       this.state.skip = val;
-      this.client.action(channel, _.phrases.onSet(val));
+      this._sendPhraseOnSet(chat, val);
       reject();
     });
   }
 
-  _checkSkip(channel, usr, msg) {
+  _checkSkip(chat, usr, msg) {
     return new Promise((resolve, reject) => {
       if (!this.rgxp.skip.test(msg)) {
         this._resetState();
@@ -146,17 +149,12 @@ module.exports = class YokoBot {
         return;
       }
 
-      const {
-        se, client, debug, streamer,
-      } = this;
+      const { se, client, debug } = this;
 
       if (!se.id || !se.jwt) {
         if (state.curr + 1 === state.skip) {
-          const phrase = _.phrases.get(streamer);
           this._resetState();
-          this.client.action(channel, phrase);
-          this.client.action(channel, phrase);
-          this.client.action(channel, phrase);
+          this._sendPhrase(chat);
         } else {
           this.state.curr += 1;
           this.state.usrs.push(usr.username);
@@ -176,15 +174,12 @@ module.exports = class YokoBot {
           reject(e);
         } else if (b.points < cost) {
           this._resetState();
-          this.client.action(channel, _.phrases.onNoPoints(usr['display-name']));
+          this._sendPhraseOnNoPoints(chat, usr['display-name']);
           resolve();
         } else {
           if (state.curr + 1 === state.skip) {
-            const phrase = _.phrases.get(streamer);
             this._resetState();
-            this.client.action(channel, phrase);
-            this.client.action(channel, phrase);
-            this.client.action(channel, phrase);
+            this._sendPhrase(chat);
             this._addPoints(client, [...state.usrs, username], -cost);
           } else {
             this.state.curr += 1;
@@ -216,5 +211,37 @@ module.exports = class YokoBot {
         } else if (debug) console.log(b.message);
       });
     });
+  }
+
+  _sendPhrase(chat) {
+    const {
+      starts, beforeWord, mids, ends,
+    } = this.phrases.onSkip;
+
+    const randStart = Math.floor(Math.random() * starts.length);
+    const start = starts[randStart];
+
+    const before = Math.round(Math.random()) ? `${beforeWord}, ` : '';
+
+    const randMid = Math.floor(Math.random() * mids.length);
+    const mid = mids[randMid];
+
+    let end = '';
+    const isEnd = Math.round(Math.random());
+    if (isEnd) {
+      const randEnd = Math.floor(Math.random() * ends.length);
+      end = ` ${ends[randEnd]}`;
+    }
+
+    const phrase = `${start}: "${before}${mid}${end}", @${this.streamer} ${this.phrases.emoji}`;
+    this.client.action(chat, phrase);
+  }
+
+  _sendPhraseOnSet(chat, val) {
+    this.client.action(chat, this.phrases.onSet.replace('%d', val));
+  }
+
+  _sendPhraseOnNoPoints(chat, username) {
+    this.client.action(chat, this.phrases.onNoPoints.replace('%s', `@${username}`));
   }
 };
