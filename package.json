@@ -1,5 +1,5 @@
 {
-  "name": "yokobot",
+  "name": "yokobotich",
   "version": "1.4.0",
   "dependencies": {
     "better-queue": "^3.8.10",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/ceigh/yokobot.git"
+    "url": "git+https://gitlab.com/ceigh/yokobotich.git"
   },
   "keywords": [
     "twitch",
@@ -32,9 +32,9 @@
   "author": "Artjom Löbsack",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/ceigh/yokobot/issues"
+    "url": "https://gitlab.com/ceigh/yokobotich/issues"
   },
-  "homepage": "https://gitlab.com/ceigh/yokobot#readme",
+  "homepage": "https://gitlab.com/ceigh/yokobotich#readme",
   "devDependencies": {
     "@babel/core": "^7.7.2",
     "@babel/preset-env": "^7.7.1",

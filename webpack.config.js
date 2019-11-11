@@ -45,11 +45,11 @@ module.exports = {
     port: 9009,
   },
 
-  entry: { yokobot: `${__dirname}/src/browser` },
+  entry: { yokobotich: `${__dirname}/src/browser` },
 
   output: {
     path: `${__dirname}/dist`,
-    publicPath: '/yokobot/',
+    publicPath: '/yokobotich/',
     filename: debug
       ? './[name].js'
       : './[name].[hash].min.js',

@@ -1,5 +1,5 @@
 import './index.css';
-import YokoBot from '../lib';
+import YokoBotich from '../lib';
 import { auth } from '../lib/_';
 
 
@@ -21,7 +21,7 @@ if (!DEBUG) window.onbeforeunload = () => 'Leave?';
 
 auth()
   .then((cfg) => {
-    bot = new YokoBot(cfg);
+    bot = new YokoBotich(cfg);
     name = bot.name;
     bot.browserCb = updateUI;
     bot.connect();

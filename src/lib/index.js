@@ -4,7 +4,7 @@ const Memory = require('better-queue-memory');
 const _ = require('./_');
 
 
-module.exports = class YokoBot {
+module.exports = class YokoBotich {
   constructor(cfg) {
     let debug;
     try {
