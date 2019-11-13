@@ -1,4 +1,3 @@
-
 Configuration
 =============
 
@@ -15,6 +14,12 @@ To set up your bot you need to define some variables in these config files:
   - `secret` - secret string to access to bot from browser
 
   - `se` - streamelements account data, defines for streamer streamelements account, if you want to take points from using command, jwt and id [here](https://streamelements.com/dashboard/account/channels)
+
+  - `dj` - twitchdj account data, define if you want to autoskip videos on [TwitchDj](https://twitch-dj.ru)
+
+    - `id` is five-digit number, you can get it from [https://twitch-dj.ru/dashboard/{your id}](https://twitch-dj.ru/dashboard)
+
+    - `key` is api key from settings, don't forget to tick "Access from API" checkbox.
 
 **`opts.json` - bot's configuration**
 

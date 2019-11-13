@@ -1,6 +1,7 @@
 // Imports
 const jsEnv = require('browser-or-node');
 const SimpleCrypto = require('simple-crypto-js').default;
+const jsonpCall = require('jsonp');
 
 
 // Vars
@@ -29,10 +30,25 @@ const apiOrFetch = (client) => {
 
     url = url[0] === '/' ? `https://api.twitch.tv/kraken${url}` : url;
 
-    fetch(url, opts)
-      .then((resp) => resp.json())
-      .then((json) => callback(null, null, json))
-      .catch((err) => callback(err));
+    const { jsonp } = opts;
+
+    if (jsonp && jsonp.use) {
+      const { endpoint } = jsonp;
+      const params = {};
+
+      if (endpoint) {
+        const randomName = Math.random().toString(36).substring(5);
+        url += `/${endpoint}/${randomName}`;
+        params.name = randomName;
+      }
+
+      jsonpCall(url, params, (err, data) => callback(err, null, data));
+    } else {
+      fetch(url, opts)
+        .then((resp) => resp.json())
+        .then((json) => callback(null, null, json))
+        .catch((err) => callback(err));
+    }
   };
 };
 

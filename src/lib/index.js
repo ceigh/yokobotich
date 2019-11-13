@@ -26,6 +26,12 @@ module.exports = class YokoBotich {
     if (cfg.phrases) this.phrases = cfg.phrases;
     else throw Error('Add phrases field to your cfg (see /config/phrases.json)');
 
+    if (cfg.dj.id && cfg.dj.key) {
+      this.dj = cfg.dj;
+    } else if (debug) {
+      console.warn(`${_.define('dj.id and dj.key', 'auth')} to skip on TwitchDj`);
+    }
+
     if (cfg.se.jwt && cfg.se.id) {
       this.se = cfg.se;
 
@@ -155,6 +161,7 @@ module.exports = class YokoBotich {
         if (state.curr + 1 === state.skip) {
           this._resetState();
           this._sendPhrase(chat);
+          this._skipVideo();
         } else {
           this.state.curr += 1;
           this.state.usrs.push(usr.username);
@@ -180,6 +187,7 @@ module.exports = class YokoBotich {
           if (state.curr + 1 === state.skip) {
             this._resetState();
             this._sendPhrase(chat);
+            this._skipVideo();
             this._addPoints(client, [...state.usrs, username], -cost);
           } else {
             this.state.curr += 1;
@@ -243,5 +251,21 @@ module.exports = class YokoBotich {
 
   _sendPhraseOnNoPoints(chat, username) {
     this.client.action(chat, this.phrases.onNoPoints.replace('%s', `@${username}`));
+  }
+
+  _skipVideo() {
+    const { debug, dj } = this;
+    if (!dj) return;
+
+    this.client.api({
+      url: `https://twitch-dj.ru/api/request_skip/${dj.id}/${dj.key}`,
+      headers: { 'User-Agent': 'request' },
+      jsonp: { use: true, endpoint: 'callback' },
+    }, (e, r, b) => {
+      if (e) {
+        if (debug) throw new Error(e);
+        else console.error(e);
+      } else if (debug) console.log(`Video ${b.success ? '' : 'not '}skipped`);
+    });
   }
 };
