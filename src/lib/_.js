@@ -21,6 +21,10 @@ const getDebug = () => {
 
 const define = (item, file = 'opts') => `Define ${item} in /config/${file}.json`;
 
+const randomString = (len) => [...Array(len)]
+  .map(() => String.fromCharCode(Math.floor((Math.random() * 25) + 97)))
+  .join('');
+
 const apiOrFetch = (client) => {
   if (jsEnv.isNode) return;
 
@@ -37,7 +41,7 @@ const apiOrFetch = (client) => {
       const params = {};
 
       if (endpoint) {
-        const randomName = Math.random().toString(36).substring(5);
+        const randomName = randomString(7);
         url += `/${endpoint}/${randomName}`;
         params.name = randomName;
       }

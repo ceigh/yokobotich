@@ -17,13 +17,12 @@ const updateUI = (newState) => {
 };
 
 
-if (!DEBUG) window.onbeforeunload = () => 'Leave?';
-
 auth()
   .then((cfg) => {
     bot = new YokoBotich(cfg);
     name = bot.name;
     bot.browserCb = updateUI;
     bot.connect();
+    if (!DEBUG) window.onbeforeunload = () => 'Leave?';
   })
   .catch((e) => errBox.innerText = e);
