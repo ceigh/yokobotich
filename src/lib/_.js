@@ -61,7 +61,7 @@ const hideSecret = () => {
 
 const auth = () => new Promise((resolve, reject) => {
   const secret = new URL(window.location.href).searchParams.get('secret');
-  if (!secret) reject(new Error('No secret, use ?secret url parameter'));
+  if (!secret) reject(new Error('Use /?secret url parameter'));
 
   const simpleCrypto = new SimpleCrypto(secret);
 

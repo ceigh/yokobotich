@@ -1,5 +1,5 @@
 body {
-  background: #ececec;
+  background: #171717;
   font-family: monospace;
   overflow: hidden;
   text-align: center;
@@ -11,30 +11,23 @@ main {
   margin-top: 27vh;
 }
 
-
 noscript, #error {
   font-size: 1.5em;
-  color: #f44336;
+  color: #F3467A;
   font-style: italic;
 }
 
 #counter {
   font-size: 15em;
-  color: #161616;
+  color: #EBE4F4;
   font-weight: bold;
 }
 
-#cost {
-  font-size: 1.5em;
-  color: #aaa;
-}
-
-
 ::selection {
-  background-color: #f44336;
-  color: #161616;
+  background-color: #F3467A;
+  color: #EBE4F4;
 }
 
 #counter::selection {
-  color: #ececec;
+  color: #171717;
 }

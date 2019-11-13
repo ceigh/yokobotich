@@ -4,6 +4,8 @@ Skip notification bot for twitch chat, based on [tmi.js](https://tmijs.com)
 
 `git clone git@gitlab.com:ceigh/yokobotich.git`
 
+`npm i`
+
 # Configure
 
 Look at the `/config` directory,
