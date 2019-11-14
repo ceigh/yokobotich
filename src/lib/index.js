@@ -60,13 +60,13 @@ module.exports = class YokoBotich {
     };
     if (cfg.rgxp.set) this.rgxp.set = new RegExp(cfg.rgxp.set);
     else if (debug) {
-      console.warn(`${_.define('custom rgxp.set')} ${
-        `(${this.rgxp.set}`.substr(0, 20)}.../ by default)`);
+      console.warn(`${_.define('custom rgxp.set')}\n${
+        this.rgxp.set} by default`);
     }
     if (cfg.rgxp.skip) this.rgxp.skip = new RegExp(cfg.rgxp.skip);
     else if (debug) {
-      console.warn(`${_.define('custom rgxp.skip')} ${
-        `(${this.rgxp.skip}`.substr(0, 20)}.../ by default)\n`);
+      console.warn(`${_.define('custom rgxp.skip')}\n${
+        `${this.rgxp.skip}`.substr(0, 20)}.../ by default\n`);
     }
 
     this.opts = {
